@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sort Objects</title>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.0/jquery-ui.min.js"></script> 
+
+
+<script> 
+
+//SET GLOBAL VARIABLES
+var TURK = 0;
+// list of image filenames 
+var IMAGE_FILES  = ['objC1_dark-01.jpg','objB1_dark-01.jpg','objA1_dark-01.jpg','objD1_dark-01.jpg','objE1_dark-01.jpg','objJ1_dark-01.jpg'];
+//where stimuli live on the internet
+var URL_PATH = 'https://www.sas.upenn.edu/~alesh/images/SLSTIM2/' 
+// list of possible positions for the images (numbers should match)
+var LEFT_POS = [100,225,350,475,600,725];
+var TOP_POS =  [50,50,50,50,50,50]
+var SCREEN_WIDTH = 0;
+var CENTER_POS = 0;
+var CONTINUE_POS = 600; //position of continue button; this can be changed dynamically
+
+
+//  ---- INITIALIZE ------ // 
+
+
+// first function call when page is loaded
+window.onload = function() {
+
+  // get width of user's screen
+  SCREEN_WIDTH = $(window).width();
+
+  // get horizontal center coordinates
+  CENTER_POS = (SCREEN_WIDTH/2);
+
+// hide the submit button if on turk
+if (TURK==1) {
+   document.getElementById('submitButton').style.display="none"  
+}
+
+// show first instruction screen and wait for start button press
+ $(document.getElementById("instructions0")).show(); 
+ switchContinueButtonLink('')
+
+
+};
+
+//  ---- UTILITY FUNCTIONS------ // 
+
+
+// takes an array of elements and sets their left-right positions
+function centerAll(arr,centerInd){
+  l = arr.length;
+  for (i = 0; i < l; i++) {
+    w =  $(arr[i]).width()
+    // console.log(w)
+    arr[i].style.left = (centerInd-(w/2))+'px';
+   }
+
+}
+
+function randomNubers(array) {
+  var i = array.length,
+      j = 0,
+      temp;
+
+  while (i--) {
+
+      j = Math.floor(Math.random() * (i+1));
+
+      // swap randomly chosen element with current element
+      temp = array[i];
+      array[i] = array[j];
+      array[j] = temp;
+
+  }
+
+  return array;  
+}
+
+function permute(input) {
+  
+  var i, ch;
+  for (i = 0; i < input.length; i++) {
+    ch = input.splice(i, 1)[0];
+    usedChars.push(ch);
+    if (input.length == 0) {
+      permArr.push(usedChars.slice());
+    }
+    permute(input);
+    input.splice(i, 0, ch);
+    usedChars.pop();
+  }
+  
+  new_run = permArr.join()
+
+  allRuns = new_run.split(',')
+
+  return allRuns;   
+};
+
+function chunkArray(myArray,arraySize) {
+    // var RUN_ORDER_ARRAY = [];
+    
+    while (myArray.length) {
+        RUN_ORDER_ARRAY.push(myArray.splice(0, arraySize));
+    }
+    
+    return RUN_ORDER_ARRAY;
+}
+
+function permuteThis(input,inputLength) {
+
+  RUN_ORDER_ARRAY = [];
+
+  permute(input);
+  var outputArray = chunkArray(allRuns,inputLength);
+
+  return outputArray
+  
+}
+
+function waitForTrigger(functionName) {
+
+      window.onkeydown = function (e) {
+        var code = e.keyCode ? e.keyCode : e.which;
+        if ( code == 84 ) { //84 = 't'
+          setDefaultKeyResponse()
+          eval(functionName);
+         }
+        
+  }
+};
+
+function switchContinueButtonLink(functionName){
+
+  // console.log(functionName)
+
+      if(functionName==''){
+           // c.setAttribute("style","display: none; position: fixed; top: 250; left: 250; font-family: myriad; font-size: 18px")
+         $(document.getElementById("Continue")).hide();
+
+     }else{ 
+       sc = (SCREEN_WIDTH/2)-125
+       $(document.getElementById("Continue")).show();
+       c = document.getElementById("Continue");
+       c.setAttribute("style","display: block;  position: absolute; top:"+CONTINUE_POS+"px; left: "+sc+"px; font-family: myriad; font-size: 18px")
+       c.setAttribute('onclick',functionName);
+       
+       
+        // c = document.getElementById("Continue_target");
+        // c.setAttribute("href",functionName);       
+        // $(document.getElementById("Continue")).show();
+        ;
+    }
+  };
+
+// function to shuffle order of an array
+shuffle = function(o) { 
+  for(var j, x, i = o.length; i; j = parseInt(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
+  return o;
+};
+
+
+function isMember(set,item){
+
+  var ismem = false;
+  for(var i = 0, l = set.length; i < l; i++) {
+    if (item==set[i]){
+      ismem = true;     
+    } 
+  }
+
+  return ismem;
+};
+
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function arraySort(inds,oldArray) {
+  var newArray = [];
+
+   for( var i = 0, l = oldArray.length ; i < l ; i++ ) {
+    newArray[i] = oldArray[inds[i]];
+    }
+
+    return newArray
+  }
+
+function sortBy(inds,oldArray) {
+    var newArray = [];
+
+    var j = 0;
+   for( var i = 0, l = inds.length ; i < l ; i++ ) {
+      newArray[j] = oldArray[inds[i]];
+      newArray[j+1] = oldArray[inds[i]+4];
+      j = j+2;
+    }
+
+
+    return newArray
+  }
+
+  function mergeTrainAndFam(train,fam) {
+    console.log("*");
+    var j = 0;
+    for (var i = 2; i <= train.length; i=i+3) {
+      train.splice(i,0,fam[j]);
+      j++;
+    }
+    console.log(train);
+  }
+
+function calcSum(set) {
+    sum = 0;
+    for(var i = 0, l = set.length; i < l; i++) {
+      sum=sum+set[i];
+    }
+
+    return sum; 
+  }
+
+function writeToForm(value,name){
+
+      newElem = document.createElement("div");
+      newElem.id= name;
+      if (value instanceof Array) {
+        newElem.innerHTML = '<textarea name="'+name+'" style="display:none">'  + value.join(',') +'</textarea>'  
+      }
+      else {
+        newElem.innerHTML = '<textarea name="'+name+'" style="display:none">'  + value +'</textarea>'  
+      }
+             
+      if(TURK==1){ 
+        document.forms[0].appendChild(newElem);        
+      } else {
+          document.body.appendChild(newElem);    
+      }
+
+
+
+};
+
+function setDefaultKeyResponse(){
+
+  window.onkeydown = function (e) {
+        var code = e.keyCode ? e.keyCode : e.which;
+        if ( code == 13 ) { return false;  } //enter key
+        if (code ==   187  ) { $(document.getElementById('Continue')).click(); }
+        if (code ==   192 ) { endTask()} //`~ key
+        };
+
+  }
+
+function hideAllInstructions(){
+  //get all elements with the 'instructions' tag
+  var elems = $(document.getElementsByClassName("instr2"));
+  //hide them
+  elems.hide();
+
+  var elems2 = $(document.getElementsByClassName("instr1"));
+  //hide them
+  elems2.hide();
+};
+
+// function to start and stop keypress recording
+function toggleKeyResponse(stepNum){
+
+  //if the step number that was passed is > 0 
+  if(stepNum>=0) { 
+
+    // give window a keydown function
+
+  window.onkeydown = function (e) {
+
+        var code = e.keyCode ? e.keyCode : e.which;
+
+        // console.log(code)
+        if ( code == 84 ) { return false;  } //trigger: explicitly ignore
+        // if ( code == 13 ) { return false;  } // enter key
+        if (code  == 187  ) { return false; } //equal sign
+        else { //any other key
+            KEYPRESSES[stepNum] = code;
+            // console.log(ONSETS[stepNum])
+             RT[stepNum] = new Date().getTime()-ONSETS[stepNum]; //from trial onset
+
+            console.log(RT)
+            toggleKeyResponse(-1);  //stop keypress recording
+        };
+    };
+  } else {
+
+    //remove recording functionality
+    setDefaultKeyResponse()
+
+  };
+
+};
+
+function removeNaNs(arr){
+  var newArr= [];
+  count = 0;
+
+    for(var i = 0, l = arr.length; i < l; i++) {
+       if(!isNaN(arr[i])){  
+        newArr[count] = arr[i] 
+        count++ }
+
+    }
+
+    return newArr; 
+
+}
+
+function remove99(arr){
+  var newArr= [];
+  count = 0;
+
+    for(var i = 0, l = arr.length; i < l; i++) {
+       if(!(arr[i]==99)){  
+        newArr[count] = arr[i] 
+        count++ }
+
+    }
+
+    return newArr; 
+
+}
+
+
+
+
+function shuffle2(obj1, obj2) {
+  var index = obj1.length;
+  var rnd, tmp1, tmp2;
+
+  while (index) {
+    rnd = Math.floor(Math.random() * index);
+    index -= 1;
+    tmp1 = obj1[index];
+    tmp2 = obj2[index];
+    obj1[index] = obj1[rnd];
+    obj2[index] = obj2[rnd];
+    obj1[rnd] = tmp1;
+    obj2[rnd] = tmp2;
+  }
+} 
+
+
+// -------------------------------
+// MAIN TASK
+
+
+//present a screen with each object image, making them draggable, and ask subjects to spatially sort them
+function objectSort(){
+
+ $(document.getElementById("instructions0")).hide();  
+ $(document.getElementById("acceptButton")).hide(); 
+ setDefaultKeyResponse()
+ 
+
+  //randomize positions (along horizontal axis)
+  shuffle2(LEFT_POS, TOP_POS);
+  
+  document.getElementById('instructions_objSort').style = 'display:block; width: 250px; position: absolute; top: 10px'
+  // $(document.getElementById('instructions_objSort')).show()
+
+
+  nImages = IMAGE_FILES.length
+  
+  for (var i = 0; i < nImages; i++) {
+
+        curName = IMAGE_FILES[i]
+        console.log(curName)
+
+        newElem=document.createElement("div"); 
+        newElem.innerHTML = "<img width=100 height=100 src="+URL_PATH+curName+">";
+        newElem.id = curName;
+        newElem.setAttribute("class","ui-widget-content");  
+        newElem.setAttribute("style", "width: 100px; height: 100px; padding: 0.5em; position: fixed; left: " + (200+LEFT_POS[i]) + "px; top: " + TOP_POS[i] + "px; margin: 0 10px 10px 0; font-size: 12pt")
+        document.body.appendChild(newElem);
+    
+    
+     $(document.getElementById(curName)).draggable(); 
+}
+ 
+switchContinueButtonLink('endObjectSort()');
+
+
+};
+
+function endObjectSort(){
+
+//check whether every item has been placed
+  if (checkPlaced()){
+
+    //hide all the elements
+    $(document.getElementById('instructions_objSort')).hide()
+    hideAndSave();
+    askDemographics();
+    
+
+  }else {
+
+    alert('Please place each of the items!')
+
+  };
+
+
+
+}
+
+function checkPlaced(){
+
+// for each item in IMAGE_FILES, check that it is not in its exact original position
+
+  nImages = IMAGE_FILES.length
+  
+  for (var i = 0; i < nImages; i++) {
+        curElem = document.getElementById(IMAGE_FILES[i]);
+        if(curElem.style.left==(200+LEFT_POS[i])+"px" && curElem.style.top==TOP_POS[i]+"px"){
+         return false
+        }  
+
+      }
+
+return true
+};
+
+
+function hideAndSave(){
+
+ nImages = IMAGE_FILES.length
+
+ // for each item in IMAGE_FILES, read its position and save to form
+  
+  for (var i = 0; i < nImages; i++) {
+
+        curItemName = IMAGE_FILES[i];
+        curElem = document.getElementById(curItemName);
+        $(document.getElementById(curItemName)).hide();
+        curPos = [curElem.style.left,curElem.style.top];
+        writeToForm(curPos,curItemName+"_position")
+
+       };
+
+};
+
+
+
+
+
+
+function askDemographics(){
+
+  $(document.getElementById('demographicQ')).show();
+  switchContinueButtonLink('javascript: endTask()');
+
+
+  }
+
+  function endTask() {
+ 
+
+    if(TURK==0){
+       alert("Thanks for your responses!")
+       console.log("end!")
+    }
+    else{
+      alert("Thanks for your responses! Please hit the 'submit' button to finish the HIT.") 
+
+        document.getElementById('submitButton').style.display="block" //reveal the submit button
+ 
+    }
+
+}
+
+
+
+</script>
+
+</head>
+
+<body bgcolor="#35354c" >
+
+<!-- consent form -->
+
+<div id="instructions0" style="width:800px; height: 800px; position: fixed;overflow: scroll;">
+<p><span style=  " color:white;font-weight:bold;font-size: 16pt; font-family: myriad;align-text:center ">Consent Form: please scroll to view all. Clicking 'Accept' indicates that you agree to participate (in lieu of a signature).</span></p> 
+<img src="https://www.sas.upenn.edu/~alesh/images/SLSTIM2/Conset_mturk_2019-01.jpg" width=800px> 
+</div> 
+
+<div id="acceptButton" style = "display:block; position:relative; left: 850px; top: 100px; width:1200px; height: 1200px;">
+<button id="startButton" type="button" onclick = "javascript:objectSort()"  style = "position: relative; top: 100px; font-family: myriad; font-size:18px"> ACCEPT </button><p><br><br><br>&nbsp&nbsp&nbsp&nbsp</p>
+<br>
+</div>
+
+<span><button id="Continue" type="button" onclick = "javascript:StartTask()"  style= 'display: none' > Continue </button></span>
+
+
+<div id="instructions_objSort" style= "width:600px; display:none; position: absolute; left: 50px; top: 10px;align-text:center;color: white;font-size: 14pt;font-family: myriad"><p><center> <span style= "color:white;font-weight:bold;font-size: 16pt; font-family: myriad;align-text:center"> You learned about 12 objects by watching animations involving them. We are interested in which objects you think are most similar to each other in terms of what you learned. Arrange the object images on the screen so that the ones you think are more similar are closer together, and the ones that are more different are farther apart. They should be as far apart as they are different. Please move each element away from its initial position in order to continue.</b> <br><br></center></p></div>
+  
+
+<!-- demographics DIVs -->
+<div id='demographicQ' style= 'display:none; position: absolute; top: 100px; left: 80px; font-family: myriad; font-size: 16pt'> <span style= "color:white;font-weight:bold;font-size: 16pt; font-family: myriad;align-text:center; ">Demographic questions<br><br>Please enter your age. <input  name="demQ_Age" size="12" type="text" /> <br> <br> Please enter your gender. <br> <select name="demQ_Gender"><option>Female</option><option>Male</option></select><br><br>
+If you have any comments about the task, or experienced any technical glitches, please feel free to enter them below.<br><input id="Q5comments" name="Q5comments" style= "width: 400px; height: 75px" type="text" /></div>
+
+
+
+</body>
